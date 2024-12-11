@@ -16,12 +16,12 @@ const server = require('http').createServer(app);
 const wss = new WebSocket.Server({ server });
 
 let users = [
-    { userId: 1, userName: "user1", password: "123456", auth_key: "zUS5p7adCQrT16oO9gvNnCRwHrkCYSqTSaDr6aFElIciNsnqQdMLIgiIFKg9WZ8Y" },
-    { userId: 2, userName: "user2", password: "123456", auth_key: "Ivgwf4AWmA1SdH7rHc0uVmzKKemXHkmm8jTAqza1uMIUAOGFGz6cJpCKcMVpqjct" },
-    { userId: 3, userName: "user3", password: "123456", auth_key: "a2Q9hlLOAMfXzTtecs8Fx9M2sKUF7VPm8cssJmIBqaFXeQeJT9rcewoTRr1XICEs" },
-    { userId: 4, userName: "user4", password: "123456", auth_key: "8ydiAVjoRO0JcgvdWIRsuQK9Cu06kfcVf98QpbSZN4wgjZMwdMK7cdqisfhbzSrC" },
-    { userId: 5, userName: "user5", password: "123456", auth_key: "tvO2ZIe9f2LESF2QvBPRFWPGelNzztX5C55H6do383fxItXjEUgAjuLgR4DEhvRi" },
-    { userId: 6, userName: "user6", password: "123456", auth_key: "KCO1RLl9hH6k2JUv2Kg4isGMfq8MtT5p1PYXPtHHJGngb0IbtgDfOn8OtX1n2sM7" },
+    { userId: 1, userName: "user1", password: "123456", auth_key: "zUS5p7adCQrT16oO9gvNnCRwHrkCYSqTSaDr6aFElIciNsnqQdMLIgiIFKg9WZ8Y", },
+    { userId: 2, userName: "user2", password: "123456", auth_key: "Ivgwf4AWmA1SdH7rHc0uVmzKKemXHkmm8jTAqza1uMIUAOGFGz6cJpCKcMVpqjct", },
+    { userId: 3, userName: "user3", password: "123456", auth_key: "a2Q9hlLOAMfXzTtecs8Fx9M2sKUF7VPm8cssJmIBqaFXeQeJT9rcewoTRr1XICEs", },
+    { userId: 4, userName: "user4", password: "123456", auth_key: "8ydiAVjoRO0JcgvdWIRsuQK9Cu06kfcVf98QpbSZN4wgjZMwdMK7cdqisfhbzSrC", },
+    { userId: 5, userName: "user5", password: "123456", auth_key: "tvO2ZIe9f2LESF2QvBPRFWPGelNzztX5C55H6do383fxItXjEUgAjuLgR4DEhvRi", },
+    { userId: 6, userName: "user6", password: "123456", auth_key: "KCO1RLl9hH6k2JUv2Kg4isGMfq8MtT5p1PYXPtHHJGngb0IbtgDfOn8OtX1n2sM7" ,},
 ];
 
 
@@ -35,7 +35,7 @@ app.get("/getAllUsers", (req, res) => {
 
 app.post("/login", (req, res) => {
     try {
-        const { userName, password } = req.body;
+        const { userName, password} = req.body;
         const key = req.headers["owner"];
 
         if (!key || key !== "oxdo") {
@@ -70,6 +70,7 @@ const clients =  [];
 wss.on("connection", (ws, req) => {
 
     const auth_key = req.headers["authorization"];
+    const name = req.headers["name"]
 
     console.log(auth_key);
 
@@ -109,7 +110,7 @@ wss.on("connection", (ws, req) => {
 
 
 
-    ws.send(`Welcome, connected to ${userName}`);
+    ws.send(`Welcome, connected to ${userName}}`);
 
 
 
@@ -117,9 +118,7 @@ wss.on("connection", (ws, req) => {
     console.log("new client connected ");
 
     ws.on("message", (message) => {
-
-       // ws.send(`${userName} send message:- ${message}`);
-       broadcast(`${userName} send message:- ${message}`)
+       broadcast({message:message,name:name})
     })
 
 
@@ -173,11 +172,15 @@ function checkUserAuthKey(auth_key) {
 }
 
 
-function broadcast(message) {
+function broadcast(recievedMessage) {
     clients.forEach((client) => {
         const ws = client.ws;
+        const userName = client.userName;
+        const message = recievedMessage.message.toString();
+        const name = !(recievedMessage.name) ? userName : recievedMessage.name;
+        const json = JSON.stringify({name:name,message:message,dateTime:new Date()})
         if (ws.readyState === WebSocket.OPEN) {
-            ws.send(message);
+            ws.send(json);
         }
     });
 }
