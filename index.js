@@ -76,7 +76,7 @@ wss.on("connection", (ws, req) => {
 
     if (!auth_key) {
         console.log("no auth key");
-        ws.send("no auth key");
+        ws.send(JSON.stringify({name:name,message:"No auth key",dateTime:new Date()}));
         ws.close(4001, "invalid authenticationkey");
         return;
     }
@@ -85,7 +85,7 @@ wss.on("connection", (ws, req) => {
     const userName = checkUserAuthKey(auth_key)
 
     if (!userName) {
-        ws.send("auth key is not valid");
+        ws.send(JSON.stringify({name:name,message:"Token is not valid",dateTime:new Date()}));
         console.log("auth key is not valid");
         ws.close(4001, "invalid authenticationkey");
         return;
@@ -100,7 +100,7 @@ wss.on("connection", (ws, req) => {
      const clientAddResult  = addingClient(newClient);
 
      if(!clientAddResult){
-        ws.send(` ${userName} connected already`)
+        ws.send(JSON.stringify({name:name,message:"You have entered from another device",dateTime:new Date()}))
         ws.close(4001, "invalid authenticationkey");
         return;
      }
@@ -110,7 +110,7 @@ wss.on("connection", (ws, req) => {
 
 
 
-    ws.send(`Welcome, connected to ${userName}}`);
+    ws.send(JSON.stringify({name:name,message:`Welcome to ${name}`,dateTime:new Date()}));
 
 
 
